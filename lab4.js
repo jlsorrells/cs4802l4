@@ -70,7 +70,7 @@ function createSlider() {
         depthColor = value;
         svgContainer.selectAll("rect").transition()
             .duration(1000)
-            .attr("opacity", function (d) { return d.depth <= depthColor ? 1 : .05 });
+            .attr("opacity", function (d) { return d.depth <= depthColor ? 1 : 0.05 });
     }
 }
 
@@ -85,7 +85,7 @@ function doStuff(error, root) {
         .data(treemap.nodes)
         .enter().append("g").attr("transform", "translate(0,100)");
     node.append("rect")
-        .attr("fill", function (d) { return color(d.name); })
+        .attr("fill", function (d) { return color(d.name.split("\n")[0]); })
         .attr("opacity", 1)
         .attr("stroke-width", 2)
         .attr("stroke", "black")
