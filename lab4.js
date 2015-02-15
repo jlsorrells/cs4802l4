@@ -40,6 +40,11 @@ function createSlider() {
       .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
             .attr("stroke", "grey")
             .attr("stroke-width", 2);
+            
+    svgContainer.append("text").text("Depth of tree to group by")
+        .attr("x", 100)
+        .attr("y", 20)
+        .attr("font-size", "20px");
         
     slider = svgContainer.append("g")
         .attr("transform", "translate(100,50)")
@@ -61,13 +66,14 @@ function createSlider() {
 
         if (d3.event.sourceEvent) { // not a programmatic event
             value = x.invert(d3.mouse(this)[0]);
+            // round to nearest integer
             value = Math.floor(value + 0.5);
             brush.extent([value, value]);
         }
 
         handle.attr("cx", x(value));
-        console.log(value);
         depthColor = value;
+        // update coloring of tree
         svgContainer.selectAll("rect").transition()
             .duration(1000)
             .attr("opacity", function (d) { return d.depth <= depthColor ? 1 : 0.05 });
@@ -75,22 +81,24 @@ function createSlider() {
 }
 
 // load the treemap
-d3.json("test.json", doStuff);
+d3.json("zoo.json", drawTree);
 
 // create the depth slider
 createSlider();
 
-function doStuff(error, root) {
+// draws the treemap
+function drawTree(error, root) {
     var node = svgContainer.datum(root).selectAll(".node")
         .data(treemap.nodes)
         .enter().append("g").attr("transform", "translate(0,100)");
+    // add rectangles
     node.append("rect")
         .attr("fill", function (d) { return color(d.name.split("\n")[0]); })
         .attr("opacity", 1)
         .attr("stroke-width", 2)
         .attr("stroke", "black")
-        .call(position)
-        .on("click", function () {depthColor = d3.select(this).transition().duration(500).attr("fill", "blue");});
+        .call(position);
+    // add text labels
     node.append("text").text(function(d) { return d.children ? null : d.name.replace(/\n/g,", "); })
         .attr("x", function(d) { return d.x + "px"; })
         .attr("y", function(d) { return d.y + 10 + "px"; })
