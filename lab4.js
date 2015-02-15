@@ -6,19 +6,62 @@ var depthColor = 2;
 //Make an SVG Container
 var svgContainer = d3.select("body").append("svg")
                                     .attr("width", 800)
-                                    .attr("height", 600);
+                                    .attr("height", 700);
 
 var treemap = d3.layout.treemap().size([800, 600])
     .value(function (d) { return (d.name.match(/\n/g) || []).length + 1; });
     
 var color = d3.scale.category20b();
 
+function createSlider() {
+    var x = d3.scale.linear()
+        .domain([0, 18])
+        .range([0, 600])
+        .clamp(true);
+        
+    var brush = d3.svg.brush()
+        .x(x)
+        .extent([0, 0])
+        .on("brush", brushed);
+        
+    var slider = svgContainer.append("g")
+        .attr("transform", "translate(100,50)")
+        .call(brush);
+        
+    slider.selectAll(".extent,.resize")
+        .remove();
+
+    slider.select(".background")
+        .attr("transform", "translate(0,-25)")
+        .attr("height", 50);
+
+    var handle = slider.append("circle")
+        .attr("fill", "blue")
+        .attr("r", 9);
+        
+    function brushed() {
+        var value = brush.extent()[0];
+
+        if (d3.event.sourceEvent) { // not a programmatic event
+            value = x.invert(d3.mouse(this)[0]);
+            value = Math.floor(value);
+            brush.extent([value, value]);
+        }
+
+        handle.attr("cx", x(value));
+        console.log(value);
+    }
+}
+
+// load the treemap
 d3.json("test.json", doStuff);
+// create the depth slider
+createSlider();
 
 function doStuff(error, root) {
     var node = svgContainer.datum(root).selectAll(".node")
         .data(treemap.nodes)
-        .enter().append("g");
+        .enter().append("g").attr("transform", "translate(0,100)");
     node.append("rect")
         .attr("fill", function (d) { return color(d.name); })
         .attr("opacity", function (d) { return d.depth == depthColor ? 1 : .05 })
